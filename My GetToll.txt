@@ -1,0 +1,47 @@
+exports.handler = async (event) => {
+
+    //Extract the namePassed parameter from queryStringParameters within the event
+    var name = event.queryStringParameters.namePassed;
+    //Send tthe extracted value to the console
+    console.log("The value of queryStringParameters: " + name);
+    //console.log(event)    // Let's take a quick look at what is passed in "event"
+    
+    //Set up the connection to the MySQL database
+    var MySQL = require('sync-mysql');
+    var connection = new MySQL({
+        host: "tun43232.cjexccwlfqec.us-east-1.rds.amazonaws.com",
+        user: "admin",
+        password: "opensesame",
+        database: "tollschedule"
+    }); 
+    
+    var interchangeEnter = event.queryStringParameters.interchangeEnter 
+    var interchangeExit = event.queryStringParameters.interchangeExit
+    var Payment = event.queryStringParameters.Payment
+    var toll = "";
+    
+    let result;
+    if(Payment == "EZ-Pass"){
+        result = connection.query("SELECT toll FROM tollschedule.ezpasstollschedule WHERE interchangeEnter=" + interchangeEnter + " AND interchangeExit=" + interchangeExit)
+    }
+    else{
+        result = connection.query("SELECT toll FROM tollschedule.tollbyplatetollschedule WHERE interchangeEnter=" + interchangeEnter + " AND interchangeExit=" + interchangeExit)
+
+    }
+    
+var valueToReturn = ("The toll from interchange " + interchangeEnter + " to interchange " + interchangeExit + " paying with " + Payment + " is $" + toll);
+
+        const response = { 
+        statusCode: 200, 
+        headers: {								      // Required headers for CORS (cross-origin resource sharing). 
+            'Access-Control-Allow-Origin': '*',       // This just means content on a web page can come from a 
+            'Access-Control-Allow-Credentials': true  // domain other than the domain of that page. 
+        }, 
+        body: JSON.stringify(valueToReturn), 
+    }; 
+// 
+// Return the response object 
+// 
+    return response; 
+
+}; 
